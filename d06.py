@@ -1,4 +1,4 @@
---- Day 6: Tuning Trouble ---
+# --- Day 6: Tuning Trouble ---
 
 from collections import Counter
 
