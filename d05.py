@@ -18,13 +18,13 @@ def create_stapel(data):
         for m in re.finditer(r"[A-Z]", line):
                 index = (m.start()-1)//4
                 d[index].append(line[m.start()])
-    for _, value in d.items():
-        value.reverse()
-
+    
     stapel = []    
     for i in range(len(d)):
-        stapel.append(d[i])
-    
+        item = d[i]
+        item.reverse()
+        stapel.append(item)
+
     return stapel
 
 def read_puzzle(file):
