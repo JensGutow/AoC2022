@@ -1,16 +1,15 @@
 # --- Day 7: No Space Left On Device ---
-import sys # recusion limit
 
-sys.setrecursionlimit(10000) 
 def read_puzzle(file):
      return [[info for info in round.split(" ")] for round in open(file).read().strip().split("\n")]
 
 class Directory:
+    root = None # static var
     def __init__(self,parent, name) -> None:
         self.parent = parent
         self.name = name
         self.dirs = {} # name: Directory(parent, name)
-        self.files = []
+        self.files = [] # [(name, size),...]
         self.size = 0
     
     def size_update(self):
@@ -28,26 +27,18 @@ class Directory:
         for dir in self.dirs.values():
             dir.list_size(d)
 
-root = None
-
 def handle_command(dir:Directory, cmd, parms) -> Directory :
-    #print (f"handle_command: cmd: {cmd} parms: {parms}")
     if cmd == "cd":
         if parms[0] == "..":  return dir.parent            
-        elif parms[0] == "/": return  root
+        elif parms[0] == "/": return  Directory.root
         else: return  dir.dirs[parms[0]]
     else: return dir
 
 def handle_file(dir:Directory, size, name):
-    #print (f"handle_file: size: {size} name: {name}")
     dir.files.append((name,int(size)))
 
 def handle_dir(dir:Directory, dir_name):
-    #print (f"handle_dir: dir:{dir.name} dir_name: {dir_name} ")
-
-    if not dir_name in dir.dirs:
-        d = Directory(dir, dir_name)
-        dir.dirs[dir_name] = d
+    dir.dirs[dir_name] = Directory(dir, dir_name)
 
 def get_filesize(dir: Directory):
     size = 0
@@ -58,13 +49,9 @@ def get_filesize(dir: Directory):
     return size
 
 def solve(puzzle):
-    global root
-    
-    root = Directory(None, "root")
-    current_dir = root
+    Directory.root = current_dir = root = Directory(None, "root")
 
     for line in puzzle:
-        #print("...solve", line)
         if line[0] == "$": 
             cmd = line[1]
             parms = [parm for parm in line[2:]]
@@ -74,25 +61,26 @@ def solve(puzzle):
     
     root.size_update()
 
-    d = {}
+    d = {} # {dir_name: Directory()}
+
+    # Task 1
     root.list_size(d)
-    size = 0 
+    size_1 = 0 
     for s in d.values():
         if s < 100000:
-            size+=s
+            size_1+=s
     
+    # Task 2
     unused_space = 70000000 - root.size
     to_delete  = 30000000 - unused_space 
-    for v in sorted(d.values()):
-        if v > to_delete: break
+    for size_2 in sorted(d.values()):
+        if size_2 >= to_delete: break
 
-    return size, v
+    return size_1, size_2
 
 puzzle = read_puzzle('d07.txt')
 
-print(solve(puzzle))
+task1, task2 = solve(puzzle)
 
-
-
-#print("Task 1", solve1(puzzle))
-#print("Task 2", solve1(puzzle))
+print("Task 1", task1)
+print("Task 2", task2)
