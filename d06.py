@@ -9,7 +9,6 @@ def solve1(puzzle, n):
         break
     return i
 
-
 puzzle = read_puzzle('d06.txt')
 
 print("Task 1", solve1(puzzle,4))
