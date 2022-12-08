@@ -49,30 +49,26 @@ def get_filesize(dir: Directory):
     return size
 
 def solve(puzzle):
-    Directory.root = current_dir = root = Directory(None, "root")
+    Directory.root = current_dir = Directory(None, "root")
 
     for line in puzzle:
-        if line[0] == "$": 
-            cmd = line[1]
-            parms = [parm for parm in line[2:]]
-            current_dir = handle_command(current_dir, cmd, parms)
-        elif line[0] == "dir" : handle_dir(current_dir, line[1])
-        else : handle_file(current_dir, line[0], line[1])
+        if line[0] == "$"       : current_dir = handle_command(current_dir, line[1], line[2:])
+        elif line[0] == "dir"   : handle_dir(current_dir, line[1])
+        else                    : handle_file(current_dir, line[0], line[1])
     
-    root.size_update()
+    Directory.root.size_update()
 
     d = {} # {dir_name: Directory()}
 
     # Task 1
-    root.list_size(d)
+    Directory.root.list_size(d)
     size_1 = 0 
     for s in d.values():
         if s < 100000:
-            size_1+=s
+            size_1 += s
     
     # Task 2
-    unused_space = 70000000 - root.size
-    to_delete  = 30000000 - unused_space 
+    to_delete  = Directory.root.size - 40000000
     for size_2 in sorted(d.values()):
         if size_2 >= to_delete: break
 
