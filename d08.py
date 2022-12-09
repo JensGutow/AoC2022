@@ -1,6 +1,7 @@
 # --- Day 8: Treetop Tree House ---
 
 from collections import defaultdict
+import numpy as np
 
 class Vector():
     def __init__(self, x,y) -> None:
@@ -87,11 +88,7 @@ def solve2(puzzle):
     global_score = 0
     for x in range(1,len(puzzle)-1):
         for y in range(1,len(puzzle)-1):
-            score = 1
-            for s in puzzle[x][y].score.values():
-                score *= s
-            if score > global_score:
-                global_score = score
+            global_score =  max(global_score, np.prod(list(puzzle[x][y].score.values())))
 
     return global_score
 
