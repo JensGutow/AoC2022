@@ -20,9 +20,8 @@ def solve(puzzle, n ):
     for move in puzzle:
         d, n = move
         n = int(n)
-        dir = Dir[d]
+        dx, dy = Dir[d]
         for _ in range(n):
-            dx, dy = dir
             # ropes[0] is head -> ropes[n-1] is last tail
             ropes[0][0] += dx
             ropes[0][1] += dy
@@ -30,7 +29,7 @@ def solve(puzzle, n ):
                 ropes[i+1] = make_move(ropes[i+1], ropes[i])
             visited[tuple((ropes[i+1][0], ropes[i+1][1]))] = 1
     return sum(visited.values())    
-    
+
 puzzle = read_puzzle('d09.txt')
 
 print("Task 1", solve(puzzle, 2))

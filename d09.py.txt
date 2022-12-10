@@ -1,0 +1,59 @@
+# --- Day 9: Rope Bridge ---
+
+import copy
+
+def read_puzzle(file):
+    l =  [ line.split(" ") for line  in open(file).read().strip().split("\n")] 
+    l2 = []
+    for line in l:
+        d,n = line
+        l2.append((d, int(n)))
+    return l2
+
+visited = {} # (x,y):1
+def make_move(t, h):
+    dx = h[0] - t[0]
+    dy = h[1] - t[1]
+    DX = DY = 0
+    if dx == 0 and abs(dy) == 2: DY =  (dy//2)
+    if dy == 0 and abs(dx) == 2: DX =  (dx//2)
+    if abs(dx) == 1 and abs(dy) == 2: 
+        DX = dx
+        DY = dy//2
+    if abs(dy) == 1 and abs(dx) == 2: 
+        DY = dy
+        DX = dx//2
+    return [t[0] + DX, t[1] + DY]
+
+def update_visited(t, t2):
+    dx = t2[0] - t[0]
+    dy = t2[1] - t[1]
+    visited[tuple((t2[0], t2[1]))] = 1
+    if abs(dx) == 2 or abs(dy) == 2:
+        if dx == 0: visited[tuple((t2[0]       , t[1] + dy//2))] = 1
+        if dy == 0: visited[tuple((t[0] + dx//2, t2[1]       ))] = 1
+
+def solve1(puzzle):
+    Dir = {"R": (1,0), "L":(-1,0), "U":(0,1), "D":(0,-1)}
+    head = [0,0]
+    tail = copy.deepcopy(head)
+    for move in puzzle:
+        d, n = move
+        dir = Dir[d]
+        #print("\n", d,n,dir)
+        for _ in range(n):
+            dx, dy = dir
+            head[0] += dx
+            head[1] += dy
+            #print("head", head)
+            tail2 = make_move(tail, head)
+            #print("tail2", tail2)
+            update_visited(tail, tail2)
+            tail = tail2
+    return sum(visited.values())    
+
+
+puzzle = read_puzzle('d09.txt')
+
+print("Task 1", solve1(puzzle))
+#print("Task 2", solve1(puzzle))
