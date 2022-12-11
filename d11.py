@@ -10,8 +10,7 @@ class Monkey():
     def __init__(self, s) -> None:
         self.nr = int(re.findall(r"[\d]+", s[0])[0])
         self.items = list(map(int,re.findall(r"[\d]+", s[1])))
-        if "*" in s[2]: self.op = "MULT"
-        else: self.op = "ADD"
+        self.op = "MULT" if "*" in s[2] else "ADD"
         self.operand = s[2].split(" ")[-1]
         self.teiler = int(s[3].split(" ")[-1])
         self.throw_true = int(s[4].split(" ")[-1])
@@ -24,16 +23,15 @@ class Monkey():
     def inspect_items(self):
         self.number_inspect_items += len(self.items)
         while self.items:
-            # Einschaenkung des Arguments auf das Produkt der Teiler aller Affen
-            item = self.items.pop(0) % self.max_teiler
-            a = item
-            if self.operand == "old" : b = item
-            else: b = int(self.operand)
-            if self.op == "ADD" : c = a + b
-            else: c = a * b
+            a = self.items.pop(0)
+            b = a if self.operand == "old" else int(self.operand)
+            c = a + b if self.op == "ADD" else a * b
             w_level =  c // 3 if self.task1 else c
-            if w_level % self.teiler == 0: thrown_to = self.throw_true
-            else: thrown_to = self.throw_false
+            # Einschaenkung des Ergebnissses auf das Produkt der Teiler aller Affen
+            # max_teiler = produkt aller teiler aller Affen, diese sind alle Primzahlen
+            # ==> x % teiler <==> (x % max_teiler) % teiler
+            w_level = w_level % self.max_teiler
+            thrown_to = self.throw_true if w_level % self.teiler == 0 else self.throw_false
             self.monkeys[thrown_to].throw(w_level)
 
 def read_puzzle(file):
