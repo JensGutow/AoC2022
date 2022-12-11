@@ -3,24 +3,22 @@
 class Crt:
     def __init__(self, regx:int) -> None:
         self.screen = []
-        self.pos = 0
-        self.sprite = []
-        self.update_sprite_pos(regx)
+        self.cycle = 0
+        self.sprite_pos = regx
 
     def update_screen(self):
-        c = "#" if (self.pos%40) in self.sprite else " "
+        c = "█" if (self.cycle%40) in [self.sprite_pos-1, self.sprite_pos, self.sprite_pos + 1] else " "
         self.screen.append(c)
-        self.pos += 1
+        self.cycle += 1
 
     def update_sprite_pos(self, pos:int):
-        self.sprite = [i for i in range(pos-1,pos+2)]
+        self.sprite_pos = pos
 
     def print_screen(self):
-        assert len(self.screen) >= 240
         s = "".join(self.screen)
         pos = 0
         print(" ---------- CRT -----------")
-        while pos < 240:
+        while pos < len(s):
             print(s[pos:pos+40])
             pos+=40
 
@@ -28,9 +26,8 @@ class Cpu:
     def __init__(self) -> None:
         self.reg_x = 1
         self.cycle = 0
-        self.th_i = 0
-        self.th = [20 + (i*40)  for i in range(6)]
-        self.signal_values = []
+        self.th_i = 0 #Threshold index
+        self.th = [20 + (i*40)  for i in range(6)] # Thresholds
         self.signal_strength =  []
         self.crt = Crt(self.reg_x)
 
@@ -53,7 +50,6 @@ class Cpu:
 
     def update_signal_strength(self):
         if self.th_i < len(self.th) and self.cycle >= self.th[self.th_i]:
-            self.signal_values.append(self.reg_x)
             self.signal_strength.append(self.reg_x * self.th[self.th_i])
             self.th_i += 1
 
@@ -74,12 +70,14 @@ print("Task 1", solve(puzzle))
 
 '''
 ---------- CRT -----------
-#### #### ###  #### #  #  ##  #  # ###  
-   # #    #  # #    #  # #  # #  # #  # 
-  #  ###  ###  ###  #### #    #  # #  # 
- #   #    #  # #    #  # # ## #  # ###  
-#    #    #  # #    #  # #  # #  # #
-#### #    ###  #    #  #  ###  ##  #
+████ ████ ███  ████ █  █  ██  █  █ ███  
+   █ █    █  █ █    █  █ █  █ █  █ █  █
+  █  ███  ███  ███  ████ █    █  █ █  █
+ █   █    █  █ █    █  █ █ ██ █  █ ███
+█    █    █  █ █    █  █ █  █ █  █ █
+████ █    ███  █    █  █  ███  ██  █
+
+Task 1 15680
 
 ZFBFHGUP
 
