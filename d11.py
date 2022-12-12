@@ -27,8 +27,10 @@ class Monkey():
             b = a if self.operand == "old" else int(self.operand)
             c = a + b if self.op == "ADD" else a * b
             w_level =  c // 3 if self.task1 else c
-            # Einschaenkung des Ergebnissses auf das Produkt der Teiler aller Affen
-            # max_teiler = produkt aller teiler aller Affen, diese sind alle Primzahlen
+            ### Optimierung fuer Part 2
+            # Einschraenkung des Ergebnisses auf das Produkt der Teiler aller Affen
+            # max_teiler = Produkt aller Teiler aller Affen, diese sind alle Primzahlen
+            # max_teiler = prod(teiler[i]) , teiler[i]: prime
             # ==> x % teiler <==> (x % max_teiler) % teiler
             w_level = w_level % self.max_teiler
             thrown_to = self.throw_true if w_level % self.teiler == 0 else self.throw_false
