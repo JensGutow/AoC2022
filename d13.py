@@ -2,7 +2,7 @@
 import copy
 
 def read_puzzle(file):
-    return   [[eval(x) for x in line.split("\n")] for line in open(file).read().strip().split("\n\n") ]
+    return [[eval(x) for x in line.split("\n")] for line in open(file).read().strip().split("\n\n")]
 
 def compare(a, b): # (result, fuzzy) : fuzzy == True -> compare_result is unknown, else: compare_result = result
     aIsList = isinstance(a, list)
