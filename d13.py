@@ -1,5 +1,4 @@
 # --- Day 13: Distress Signal ---
-import copy
 from functools import cmp_to_key
 
 def read_puzzle(file):
