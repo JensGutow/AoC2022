@@ -13,22 +13,26 @@ def compare(a, b): # (result, fuzzy) : fuzzy == True -> compare_result is unknow
         if not bIsList: b = [b]
         return compare(a,b)
     else:
-        for az,bz in zip(a, b):
+        for az, bz in zip(a, b):
             result, isUndef = compare(az, bz)
             if not isUndef: return result, False
         return len(a) < len(b), len(a) == len(b)
 
 def solve1(puzzle):
-    return sum([(i + 1) * compare(a, b)[0] for i, a, b in enumarate(puzzle)])
+    return sum([(i + 1) * compare(item[0], item[1])[0] for i, item in enumerate(puzzle)])
 
 def solve2(puzzle):
-    p = [ *p for p in puzzle]
+    p = []
+    for items in puzzle:
+        a, b = items
+        p.append(a)
+        p.append(b)
+
     addList = [[2], [6]]
-    for l in addList:
-        p.append(l)
-
+    p.append(addList[0])
+    p.append(addList[1])
+    
     sorted = []
-
     while p:
         item = copy.deepcopy(p[0])
         next = copy.deepcopy(item)
@@ -43,6 +47,5 @@ def solve2(puzzle):
     return i1 * i2
 
 puzzle = read_puzzle('d13.txt')
-
 print("Task 1", solve1(puzzle))
 print("Task 2", solve2(puzzle))
