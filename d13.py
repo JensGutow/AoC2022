@@ -18,25 +18,11 @@ def compare(a, b): # (result, fuzzy) : fuzzy == True -> compare_result is unknow
             if not isUndef: return result, False
         return len(a) < len(b), len(a) == len(b)
 
-def comp(a, b):
-    return compare(a, b)[0]
-
 def solve1(puzzle):
-    s = 0
-    for i, p in enumerate(puzzle):
-        a, b = p
-        result, fuzzy = compare(a, b)
-        assert fuzzy == False
-        if result: s += (i + 1)
-    return s    
+    return sum([(i + 1) * compare(a, b)[0] for i, a, b in enumarate(puzzle)])
 
 def solve2(puzzle):
-    p = []
-    for items in puzzle:
-        a, b = items
-        p.append(a)
-        p.append(b)
-
+    p = [ *p for p in puzzle]
     addList = [[2], [6]]
     for l in addList:
         p.append(l)
@@ -47,7 +33,7 @@ def solve2(puzzle):
         item = copy.deepcopy(p[0])
         next = copy.deepcopy(item)
         for next in p[1:]:
-                item = copy.deepcopy(item) if comp(item, next) else copy.deepcopy(next)
+                item = copy.deepcopy(item) if compare(item, next)[0] else copy.deepcopy(next)
         p.pop(p.index(item))
         sorted.append(item)
 
