@@ -1,5 +1,6 @@
 # --- Day 13: Distress Signal ---
 import copy
+from functools import cmp_to_key
 
 def read_puzzle(file):
     return [[eval(x) for x in line.split("\n")] for line in open(file).read().strip().split("\n\n")]
@@ -18,6 +19,9 @@ def compare(a, b): # (result, fuzzy) : fuzzy == True -> compare_result is unknow
             if not isUndef: return result, False
         return len(a) < len(b), len(a) == len(b)
 
+def comp(a, b):
+    return compare(a, b)[0]
+
 def solve1(puzzle):
     return sum([(i + 1) * compare(item[0], item[1])[0] for i, item in enumerate(puzzle)])
 
@@ -32,17 +36,19 @@ def solve2(puzzle):
     p.append(addList[0])
     p.append(addList[1])
     
-    sorted = []
-    while p:
-        item = copy.deepcopy(p[0])
-        next = copy.deepcopy(item)
-        for next in p[1:]:
-                item = copy.deepcopy(item) if compare(item, next)[0] else copy.deepcopy(next)
-        p.pop(p.index(item))
-        sorted.append(item)
+    p.sort(key = cmp_to_key(comp))
 
-    i1 = sorted.index(addList[0]) + 1
-    i2 = sorted.index(addList[1]) + 1
+    # sorted = []
+    # while p:
+    #     item = copy.deepcopy(p[0])
+    #     next = copy.deepcopy(item)
+    #     for next in p[1:]:
+    #             item = copy.deepcopy(item) if compare(item, next)[0] else copy.deepcopy(next)
+    #     p.pop(p.index(item))
+    #     sorted.append(item)
+
+    i1 = p.index(addList[0]) + 1
+    i2 = p.index(addList[1]) + 1
 
     return i1 * i2
 
