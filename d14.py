@@ -1,28 +1,26 @@
 #  --- Day 14: Regolith Reservoir ---
 import copy
+from pygame.math import Vector2 as V
 
 def read_puzzle(file):
-    paths =   [[[int(coord) for coord in path.split(",")] for path in line.split(" -> ") ] for line in open(file).read().strip().split("\n") ]
-    max_y = max([coords[1] for path in paths for coords in path])
-    x = ([coords[0] for path in paths for coords in path])
-    min_x = min(x)
-    max_x = max(x)
+    paths =   [[V([int(point) for point in path.split(",")]) for path in line.split(" -> ")]   for line in open(file).read().strip().split("\n")]
+    points = [point for path in paths for point in path] 
+    max_y = int(max(p[1] for p in points))
+    min_x = int(min(p[0] for p in points))
+    max_x = int(max(p[0] for p in points))
     cave = {}
     for path in paths:
         for i2, p1 in enumerate(path[:-1], 1):
             p2 = path[i2]
-            dx = p2[0] - p1[0]
-            dy = p2[1] - p1[1]
+            dx, dy = p2 - p1
             if dx : dx = dx//abs(dx)
             if dy : dy = dy//abs(dy)
-            x = p1[0]
-            y = p1[1]
+            dP = V(dx, dy)
             while True:
-                cave[(x,y)] = "#"
-                if x == p2[0] and y == p2[1]:
+                cave[tuple(p1)] = "#"
+                if p1 == p2:
                     break
-                x += dx
-                y += dy
+                p1 = p1 + dP
     return max_y, min_x, max_x, cave
 
 def cave_simu_step(src, max_y, cave, steps):
@@ -31,10 +29,10 @@ def cave_simu_step(src, max_y, cave, steps):
 
     finish = False
     while not finish:
-        checks = [(0,1), (-1,1), (1,1)]
+        checks = [V(0,1), V(-1,1), V(1,1)]
         finish = True
         for check in checks:
-            check_pos = [item[0] + check[0], item[1] + check[1]]
+            check_pos = item + check
             if tuple(check_pos) not in cave:
                 if check_pos[1] > max_y: 
                     return False
@@ -49,7 +47,7 @@ def cave_simu_step(src, max_y, cave, steps):
 def solve1(puzzle):
     max_y, min_x, max_x, cave = puzzle
     cave2 = copy.deepcopy(cave)
-    START = [500,0]
+    START = V(500,0)
     s1 = [0]
     while cave_simu_step(START, max_y, cave, s1): pass
 
