@@ -1,5 +1,4 @@
 # --- Day 13: Distress Signal ---
-import copy
 from functools import cmp_to_key
 
 def read_puzzle(file):
@@ -37,15 +36,6 @@ def solve2(puzzle):
     p.append(addList[1])
     
     p.sort(key = cmp_to_key(comp))
-
-    # sorted = []
-    # while p:
-    #     item = copy.deepcopy(p[0])
-    #     next = copy.deepcopy(item)
-    #     for next in p[1:]:
-    #             item = copy.deepcopy(item) if compare(item, next)[0] else copy.deepcopy(next)
-    #     p.pop(p.index(item))
-    #     sorted.append(item)
 
     i1 = p.index(addList[0]) + 1
     i2 = p.index(addList[1]) + 1
