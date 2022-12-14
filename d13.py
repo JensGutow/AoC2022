@@ -11,7 +11,7 @@ def compare(a, b): # (result, fuzzy) : fuzzy == True -> compare_result is unknow
     elif aIsList != bIsList:
         if not aIsList: a = [a]
         if not bIsList: b = [b]
-        return compare(a,b)
+        return compare(a, b)
     else:
         for az, bz in zip(a, b):
             result, isUndef = compare(az, bz)
