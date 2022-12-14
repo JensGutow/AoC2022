@@ -7,7 +7,7 @@ def read_puzzle(file):
     x = ([coords[0] for path in paths for coords in path])
     min_x = min(x)
     max_x = max(x)
-    grave = {}
+    cave = {}
     for path in paths:
         for i2, p1 in enumerate(path[:-1], 1):
             p2 = path[i2]
@@ -18,16 +18,16 @@ def read_puzzle(file):
             x = p1[0]
             y = p1[1]
             while True:
-                grave[(x,y)] = "#"
+                cave[(x,y)] = "#"
                 if x == p2[0] and y == p2[1]:
                     break
                 x += dx
                 y += dy
-    return max_y, min_x, max_x, grave
+    return max_y, min_x, max_x, cave
 
-def grave_simu_step(src, max_y, min_x, max_x, grave):
+def cave_simu_step(src, max_y, cave, steps):
     item = src
-    if tuple(item) in grave: return False
+    if tuple(item) in cave: return False
 
     finish = False
     while not finish:
@@ -35,35 +35,31 @@ def grave_simu_step(src, max_y, min_x, max_x, grave):
         finish = True
         for check in checks:
             check_pos = [item[0] + check[0], item[1] + check[1]]
-            if tuple(check_pos) not in grave:
+            if tuple(check_pos) not in cave:
                 if check_pos[1] > max_y: 
                     return False
                 else: 
                     item = check_pos
                     finish = False
                     break    
-    grave[tuple(item)] = "O"
+    cave[tuple(item)] = "O"
+    steps[0] += 1
     return True
 
-
 def solve1(puzzle):
-    max_y, min_x, max_x, grave = puzzle
-    grave2 = copy.deepcopy(grave)
-    SRC = [500,0]
-    i = True
-    while i: 
-        i = grave_simu_step(SRC, max_y, min_x, max_x, grave)
-    s1 = sum( [1 for v in grave.values() if v=="O"])
+    max_y, min_x, max_x, cave = puzzle
+    cave2 = copy.deepcopy(cave)
+    START = [500,0]
+    s1 = [0]
+    while cave_simu_step(START, max_y, cave, s1): pass
 
     y = max_y+2
     for x in range(min_x-3-max_y, max_x +4 + max_y):
-        grave2[(x,y)] = "#"
-    test = True
-    while test: 
-        test = grave_simu_step(SRC, max_y+3, min_x, max_x, grave2)
-    s2 = sum( [1 for v in grave2.values() if v=="O"])
+        cave2[(x,y)] = "#"
+    s2 = [0]
+    while cave_simu_step(START, max_y+3, cave2, s2): pass
 
-    return s1, s2
+    return s1[0], s2[0]
 
 puzzle = read_puzzle('d14.txt')
 
