@@ -3,7 +3,7 @@ import copy
 from pygame.math import Vector2 as V
 
 def read_puzzle(file):
-    paths =   [[V([int(point) for point in path.split(",")]) for path in line.split(" -> ")]   for line in open(file).read().strip().split("\n")]
+    paths =   [[V([int(coord) for coord in point.split(",")]) for point in path.split(" -> ")]   for path in open(file).read().strip().split("\n")]
     points = [point for path in paths for point in path] 
     max_y = int(max(p[1] for p in points))
     min_x = int(min(p[0] for p in points))
