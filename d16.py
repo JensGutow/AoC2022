@@ -9,10 +9,27 @@ class Node():
         self.rate =  int(re.findall(r"[0-9]+", line)[0])
         self.valve = letters[0]
         self.to = letters[1:]
-        self.predecessor = None
         self.isOpen = self.rate == 0 # 0: Valve is damaged and opened
         Node.nodes[self.valve] = self
-        ValveStates.addNode(self)
+        #ValveStates.addNode(self)
+
+    @staticmethod
+    def getPressure(path):
+        return sum([Node.nodes[node].rate for node in path.split(",") if Node.nodes[node].isOpen])
+
+    @staticmethod
+    def setValveStatus(path):
+        for node in Node.nodes.keys():
+            status = True if node in path.split(",") else False
+            Node.nodes[node].isOpen = status
+
+    @staticmethod
+    def getValveStatus():
+        valveStatus = 0
+        for i, node in enumerate(Node.nodes.keys()):
+            if Node.nodes[node].isOpen:
+                valveStatus |= (1 << i)
+        return valveStatus
 
 class ValveStates():
     valveOpenState = 0   # BitIndex set <-> valve "XX" is open
@@ -91,8 +108,41 @@ def getMaxPressure(start, maxPath, valveStatus, pressure, time):
         maxPath = maxPath[:-3]
     return maxPressure
 
+def heuristic(item):
+    return item[PRESSURE]
+
+NODE            = 0
+PATH            = 1 # comma separated
+PRESSURE        = 2
+TIME            = 3
+VALVE_STATUS    = 4
+
+def bfs(start, pressure, time):
+    queue = []
+    queue.append([start,start, pressure, time, 0])
+    while time:
+        time -= 1
+        if len(queue) > 500: 
+            queue = sorted(queue, key=heuristic, reverse=True)[:500]
+        nextQueue = []
+        while queue:
+            item = queue.pop()
+            Node.setValveStatus(item[PATH])
+            pressure = Node.getPressure(item[PATH]) + item[PRESSURE]
+            for node in Node.nodes[item[NODE]].to:
+                nodeWasOpen = Node.nodes[node].isOpen
+                Node.nodes[node].isOpen = True
+                valveStatus = Node.getValveStatus()
+                nextQueue.append([node, item[PATH] +"," + node, pressure, time, valveStatus])
+                Node.nodes[node].isOpen = nodeWasOpen
+        queue = nextQueue
+
+    return sorted(queue, key=heuristic, reverse=True)[0][PRESSURE]
+
+
+
 def solve1(puzzle):
-    return getMaxPressure("AA","AA", ValveStates.getValveState(), ValveStates.pressure, 30)
+    return bfs("AA", 0, 30)
 
 puzzle = read_puzzle('d16.txt')
 
