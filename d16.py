@@ -1,6 +1,6 @@
 # --- Day 16: Proboscidea Volcanium ---
 import re
-import functools
+import copy
 
 class Node():
     nodes = {}
@@ -11,140 +11,95 @@ class Node():
         self.to = letters[1:]
         self.isOpen = self.rate == 0 # 0: Valve is damaged and opened
         Node.nodes[self.valve] = self
-        #ValveStates.addNode(self)
 
     @staticmethod
-    def getPressure(path):
-        return sum([Node.nodes[node].rate for node in path.split(",") if Node.nodes[node].isOpen])
-
-    @staticmethod
-    def setValveStatus(path):
+    def getPressure(valveState):
+        pressure = 0
         for node in Node.nodes.keys():
-            status = True if node in path.split(",") else False
-            Node.nodes[node].isOpen = status
+            if valveState[node]:
+                pressure += Node.nodes[node].rate
+        return pressure
 
     @staticmethod
-    def getValveStatus():
-        valveStatus = 0
-        for i, node in enumerate(Node.nodes.keys()):
-            if Node.nodes[node].isOpen:
-                valveStatus |= (1 << i)
-        return valveStatus
-
-class ValveStates():
-    valveOpenState = 0   # BitIndex set <-> valve "XX" is open
-    valveToStateInx = {} # "XX" : BitIndex
-    pressure = 0
-
-    @staticmethod
-    def addNode(node : Node):
-        if node.rate == 0: return # 0-valve shall not be added
-        if node.valve in ValveStates.valveToStateInx.keys(): return # was added before already
-        inx = 0 if not ValveStates.valveToStateInx else len(ValveStates.valveToStateInx) + 1
-        ValveStates.valveToStateInx[node.valve] = inx
-
-    @staticmethod
-    def openValve(valve):
-        if valve in ValveStates.valveToStateInx:
-            ValveStates.valveOpenState |= (1 << ValveStates.valveToStateInx[valve])
-
-    @staticmethod
-    def closeValve(valve):
-        if valve in ValveStates.valveToStateInx:
-            ValveStates.valveOpenState &= ~(1 << ValveStates.valveToStateInx[valve])
-
-
-    @staticmethod
-    def setValveStatus(valve, open:bool):
-        if open: ValveStates.openValve(valve)
-        else: ValveStates.closeValve(valve)
-            
-    @staticmethod
-    def getValveState():
-        return ValveStates.valveOpenState
-
-    @staticmethod
-    def isValveOpen(valve):
-        # damaged valves are not part of ValveStates and are open always
-        if valve not in ValveStates.valveToStateInx: return True
-        else: 
-            inx = ValveStates.valveToStateInx[valve]
-            return (ValveStates.valveOpenState & (1 << inx)) != 0
-
+    def valveIsOpen(node, valveState):
+        return valveState[node] 
+    
 def read_puzzle(file):
     nodes =  [Node(line) for line in open(file).read().strip().split("\n") ]
     return nodes
 
-N = 1000000
-n = 0
-
-@functools.cache
-def getMaxPressure(start, maxPath, valveStatus, pressure, time):
-    global N
-    global n 
-    n += 1
-    if n%N==0:
-        n=0
-        print(time, maxPath)
-    if not ValveStates.isValveOpen(start):
-        ValveStates.openValve(start)
-
-        time -= 1
-        pressure + Node.nodes[start].rate
-        if time == 0: return pressure
-    time -= 1
-    pressure + Node.nodes[start].rate
-    if time == 0: return pressure
-
-    assert time > 0
-
-    maxPressure = 0
-    for node in Node.nodes[start].to:
-        valveState = ValveStates.getValveState()
-        maxPath = maxPath +"," + node
-        pressure = (Node.nodes[start].rate * time) + getMaxPressure(node, maxPath, ValveStates.getValveState(), ValveStates.pressure, time)
-        maxPressure = max(maxPressure, pressure)
-        ValveStates.valveOpenState = valveState
-        maxPath = maxPath[:-3]
-    return maxPressure
-
 def heuristic(item):
-    return item[PRESSURE]
+    return (item[PRESSURE])
 
-NODE            = 0
-PATH            = 1 # comma separated
+
+NODE_MY         = 0
+NODE_ELEPHANT   = 1
 PRESSURE        = 2
-TIME            = 3
-VALVE_STATUS    = 4
+PATH            = 3 # comma separated nodes
+VALVE_STATE     = 4
 
-def bfs(start, pressure, time):
+MAX_N           = 10000
+
+def compressQueue(q, n):
+    if len(q) > n: 
+        q = sorted(q, key=heuristic, reverse=True)
+        return q[:n]
+    else: 
+        return q
+
+def step(queue, player, updatePressure = True):
+    queue = compressQueue(queue, MAX_N)
+    nextQueue = []
+    while queue: 
+        item = queue.pop(0)
+        valveStates = copy.deepcopy(item[VALVE_STATE])
+        pressure = item[PRESSURE]
+        if updatePressure:
+            pressure +=  Node.getPressure(valveStates)
+        if all([v for v in item[VALVE_STATE].values()]): 
+            # whenn all valves are open -> only update the current item but do not insert new items
+            item[PRESSURE] = pressure
+            nextQueue.append(item)
+            continue
+
+        # if a node can be open -> open it
+        if not Node.valveIsOpen(item[player], valveStates):
+            valveStates2 = copy.deepcopy(valveStates)
+            valveStates2[item[player]] = True
+            nextQueue.append([item[NODE_MY], item[NODE_ELEPHANT], pressure, item[PATH] + "," + item[player], valveStates2])
+        # check all next valves
+        for node in Node.nodes[item[player]].to:
+            if player == NODE_ELEPHANT:
+                node_my         = item[NODE_MY]
+                node_elephant   = node
+            else:
+                node_my         = node
+                node_elephant   = item[NODE_ELEPHANT]        
+            nextQueue.append([node_my, node_elephant, pressure, item[PATH] + "," + node, valveStates])
+    return nextQueue
+
+def bfs(start, pressure, time, part1):
+    valveState = {key : valve.rate == 0 for key, valve in Node.nodes.items()}
+
     queue = []
-    queue.append([start,start, pressure, time, 0])
+    queue.append([start,start, pressure, "AA", valveState])
     while time:
+        print(time)
         time -= 1
-        if len(queue) > 500: 
-            queue = sorted(queue, key=heuristic, reverse=True)[:500]
-        nextQueue = []
-        while queue:
-            item = queue.pop()
-            Node.setValveStatus(item[PATH])
-            pressure = Node.getPressure(item[PATH]) + item[PRESSURE]
-            for node in Node.nodes[item[NODE]].to:
-                nodeWasOpen = Node.nodes[node].isOpen
-                Node.nodes[node].isOpen = True
-                valveStatus = Node.getValveStatus()
-                nextQueue.append([node, item[PATH] +"," + node, pressure, time, valveStatus])
-                Node.nodes[node].isOpen = nodeWasOpen
-        queue = nextQueue
+        queue = step(queue, NODE_MY, updatePressure=True)
+        if not part1:
+            queue = step(queue, NODE_ELEPHANT, updatePressure=False)        
 
-    return sorted(queue, key=heuristic, reverse=True)[0][PRESSURE]
-
-
+    queue = sorted(queue, key=heuristic, reverse=True)
+    return queue[0][PRESSURE]
 
 def solve1(puzzle):
-    return bfs("AA", 0, 30)
+    return bfs("AA", 0, 30, part1=True)
+
+def solve2(puzzle):
+    return bfs("AA", 0, 26, part1=False)
 
 puzzle = read_puzzle('d16.txt')
 
 print("Task 1", solve1(puzzle))
-#print("Task 2", solve1(puzzle))
+print("Task 2", solve2(puzzle))
